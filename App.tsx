@@ -7,12 +7,14 @@ import { initAudio } from './services/audioService';
 import { getMapLeaderboard, isHighScore, saveScore, getUserProfile, saveUserProfile } from './services/storageService';
 
 // Meta Upgrade Configurations
+// Adjusted for Rank 50 cap with incremental scaling and increasing costs
 const META_UPGRADES: MetaUpgradeConfig[] = [
-    { id: 'health', name: 'Hull Reinforcement', description: 'Increases starting Base Health.', baseCost: 500, costScale: 1.5, maxRank: 10, statPerRank: 10, format: 'flat' },
-    { id: 'damage', name: 'Weapon Overdrive', description: 'Increases Global Damage output.', baseCost: 1000, costScale: 1.8, maxRank: 5, statPerRank: 0.05, format: 'percent' },
-    { id: 'speed', name: 'Engine Tuning', description: 'Increases Movement Speed.', baseCost: 750, costScale: 1.6, maxRank: 5, statPerRank: 0.05, format: 'percent' },
-    { id: 'xp', name: 'Data Mining', description: 'Increases XP gain from all sources.', baseCost: 800, costScale: 1.5, maxRank: 5, statPerRank: 0.10, format: 'percent' },
-    { id: 'magnet', name: 'Attractor Beam', description: 'Increases Item Pickup Range.', baseCost: 300, costScale: 1.4, maxRank: 5, statPerRank: 0.20, format: 'percent' }
+    { id: 'health', name: 'Hull Reinforcement', description: 'Increases Base Health by 5 per rank.', baseCost: 100, costScale: 1.10, maxRank: 50, statPerRank: 5, format: 'flat' },
+    { id: 'armor', name: 'Plating Armor', description: 'Reduces incoming damage by 0.5 per rank.', baseCost: 500, costScale: 1.15, maxRank: 50, statPerRank: 0.5, format: 'flat' },
+    { id: 'damage', name: 'Weapon Overdrive', description: 'Increases Damage by 2% per rank.', baseCost: 200, costScale: 1.12, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'speed', name: 'Engine Tuning', description: 'Increases Speed by 1% per rank.', baseCost: 200, costScale: 1.12, maxRank: 50, statPerRank: 0.01, format: 'percent' },
+    { id: 'xp', name: 'Data Mining', description: 'Increases XP Gain by 2% per rank.', baseCost: 250, costScale: 1.10, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'magnet', name: 'Attractor Beam', description: 'Increases Pickup Range by 2% per rank.', baseCost: 150, costScale: 1.10, maxRank: 50, statPerRank: 0.02, format: 'percent' }
 ];
 
 const MAP_CONFIGS: GameMap[] = [
@@ -332,7 +334,7 @@ const App: React.FC = () => {
 
   // Initial dummy player to prevent crash before game starts
   const playerRef = useRef<Player>({ 
-      id: 'p1', x: 0, y: 0, radius: 12, color: '#00ffcc', hp: 100, maxHp: 100, speed: 4, level: 1, xp: 0, xpToNextLevel: 100, pickupRange: 100, markedForDeletion: false, activeAbility: 'dash', abilityCooldown: 120, abilityTimer: 0, abilityActiveTimer: 0, 
+      id: 'p1', x: 0, y: 0, radius: 12, color: '#00ffcc', hp: 100, maxHp: 100, speed: 4, armor: 0, level: 1, xp: 0, xpToNextLevel: 100, pickupRange: 100, markedForDeletion: false, activeAbility: 'dash', abilityCooldown: 120, abilityTimer: 0, abilityActiveTimer: 0, 
       statModifiers: { damage: 1, cooldown: 1, xpMultiplier: 1 }, weapons: [] 
   });
 
@@ -354,11 +356,12 @@ const App: React.FC = () => {
     
     // Calculate Stats based on Meta Upgrades
     const upgrades = userProfile.upgrades;
-    const baseHp = 100 + (upgrades.health * 10);
-    const baseSpeed = 4 * (1 + (upgrades.speed * 0.05));
-    const pickupRange = 100 * (1 + (upgrades.magnet * 0.2));
-    const dmgMult = 1 + (upgrades.damage * 0.05);
-    const xpMult = 1 + (upgrades.xp * 0.10);
+    const baseHp = 100 + (upgrades.health * 5); // 5 HP per rank
+    const baseSpeed = 4 * (1 + (upgrades.speed * 0.01)); // 1% per rank
+    const pickupRange = 100 * (1 + (upgrades.magnet * 0.02)); // 2% per rank
+    const dmgMult = 1 + (upgrades.damage * 0.02); // 2% per rank
+    const xpMult = 1 + (upgrades.xp * 0.02); // 2% per rank
+    const armor = upgrades.armor * 0.5; // 0.5 flat damage reduction per rank
 
     // Initialize Player with chosen weapon and Meta Stats
     const starterWeapon = getStarterWeapon(starterWeaponType);
@@ -373,6 +376,7 @@ const App: React.FC = () => {
       hp: baseHp,
       maxHp: baseHp,
       speed: baseSpeed,
+      armor: armor,
       level: 1,
       xp: 0,
       xpToNextLevel: 100,

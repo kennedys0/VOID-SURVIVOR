@@ -82,6 +82,7 @@ export interface Player extends Entity {
   hp: number;
   maxHp: number;
   speed: number;
+  armor: number; // Flat damage reduction
   level: number;
   xp: number;
   xpToNextLevel: number;
@@ -179,6 +180,7 @@ export interface UserProfile {
     speed: number;
     xp: number;
     magnet: number;
+    armor: number;
   };
 }
 

@@ -84,6 +84,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
     if (gameState === GameState.MENU) {
         setScoreSaved(false);
         setPlayerName("Survivor");
+        setPrepStage('map');
     }
   }, [gameState]);
 
@@ -516,14 +517,15 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
              )}
 
              <div className="mt-12 flex gap-4">
-                {prepStage === 'weapon' && (
-                    <button 
-                        onClick={() => setPrepStage('map')}
-                        className="bg-gray-700 text-gray-300 font-bold px-8 py-3 rounded-full hover:bg-gray-600 transition-colors"
-                    >
-                        BACK
-                    </button>
-                )}
+                <button 
+                    onClick={() => {
+                        if (prepStage === 'map') onQuit();
+                        else setPrepStage('map');
+                    }}
+                    className="bg-gray-700 text-gray-300 font-bold px-8 py-3 rounded-full hover:bg-gray-600 transition-colors"
+                >
+                    {prepStage === 'map' ? 'MAIN MENU' : 'BACK'}
+                </button>
                 
                 <button 
                   onClick={() => {

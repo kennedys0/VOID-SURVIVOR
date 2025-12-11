@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Player, Enemy, Projectile, Loot, GameState, VoidEvent, Particle, GameMap, Hazard, DamageIndicator } from '../types';
 import { generateVoidEvent } from '../services/geminiService';
@@ -407,9 +408,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         const margin = 20;
         if (p.x <= margin || p.x >= canvas.width - margin || p.y <= margin || p.y >= canvas.height - margin) {
              if (totalTimeRef.current % 30 === 0) {
-                 const dmg = 5;
-                 p.hp -= dmg;
-                 spawnDamageIndicator(p.x, p.y, dmg, true);
+                 const rawDmg = 5;
+                 const finalDmg = Math.max(1, rawDmg - (p.armor || 0)); // Apply Armor
+                 p.hp -= finalDmg;
+                 spawnDamageIndicator(p.x, p.y, finalDmg, true);
                  shakeRef.current += 5;
                  playSound.playerHit();
                  spawnParticles(p.x, p.y, '#ffff00', 5, 5);
@@ -422,9 +424,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         const dist = Math.hypot(p.x - lava.x, p.y - lava.y);
         if (dist < lava.radius) {
             if (totalTimeRef.current % 20 === 0) {
-                 const dmg = 2;
-                 p.hp -= dmg;
-                 spawnDamageIndicator(p.x, p.y, dmg, true);
+                 const rawDmg = 2;
+                 const finalDmg = Math.max(1, rawDmg - (p.armor || 0)); // Apply Armor
+                 p.hp -= finalDmg;
+                 spawnDamageIndicator(p.x, p.y, finalDmg, true);
                  spawnParticles(p.x, p.y, '#ff4400', 2, 2);
             }
         }
@@ -755,8 +758,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
                      damageFeedbackTimer.current = 30; // IFrames
                      spawnDamageIndicator(p.x, p.y, 0, false); // Blocked
                 } else {
-                    p.hp -= enemy.damage;
-                    spawnDamageIndicator(p.x, p.y, enemy.damage, true);
+                    // APPLY ARMOR
+                    const rawDamage = enemy.damage;
+                    const armor = p.armor || 0;
+                    const finalDamage = Math.max(1, rawDamage - armor); // Minimum 1 damage
+
+                    p.hp -= finalDamage;
+                    spawnDamageIndicator(p.x, p.y, finalDamage, true);
                     playSound.playerHit();
                     shakeRef.current = 10;
                     damageFeedbackTimer.current = 30; // IFrames

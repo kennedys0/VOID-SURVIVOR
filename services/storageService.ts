@@ -48,7 +48,8 @@ const DEFAULT_PROFILE: UserProfile = {
     damage: 0,
     speed: 0,
     xp: 0,
-    magnet: 0
+    magnet: 0,
+    armor: 0
   }
 };
 
