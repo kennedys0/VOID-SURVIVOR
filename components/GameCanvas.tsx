@@ -243,8 +243,29 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       const currentWaveIndex = Math.floor(totalTimeRef.current / 3600); // 0 = Wave 1, 1 = Wave 2
       const wavePower = 1 + (currentWaveIndex * 0.2);
       
-      const finalHpMult = mult * wavePower;
-      const finalDmgMult = wavePower; // Only scale damage by wave to prevent one-shots too early
+      // MAP SCALING (Difficulty Adjustment)
+      let mapHpMod = 1.0;
+      let mapDmgMod = 1.0;
+      let mapSpeedMod = 1.0;
+
+      if (currentMap.id === 'void') {
+          // NERF: Easier start
+          mapHpMod = 0.8;
+          mapDmgMod = 0.6; 
+          mapSpeedMod = 0.9;
+      } else if (currentMap.id === 'crimson_waste') {
+          // BUFF: Extreme
+          mapHpMod = 1.4;
+          mapDmgMod = 1.5;
+          mapSpeedMod = 1.15;
+      } else {
+          // Neon City (Baseline)
+          mapHpMod = 1.1;
+          mapDmgMod = 1.0;
+      }
+
+      const finalHpMult = mult * wavePower * mapHpMod;
+      const finalDmgMult = wavePower * mapDmgMod;
 
       let stats = { hp: 10, maxHp: 10, speed: 2, radius: 10, color: '#ff00ff', damage: 10, value: 10, knockbackResist: 0 };
 
@@ -252,17 +273,17 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           playSound.bossSpawn();
           setVoidMessage({ title: "WARNING", message: "A LEVIATHAN APPROACHES", modifier: {} });
           setTimeout(() => setVoidMessage(null), 3000);
-          stats = { hp: 5000 * finalHpMult, maxHp: 5000 * finalHpMult, speed: 1.0 * speedMult, radius: 45, color: '#ff0000', damage: 50 * finalDmgMult, value: 2000 * xpMult, knockbackResist: 1 };
+          stats = { hp: 5000 * finalHpMult, maxHp: 5000 * finalHpMult, speed: 1.0 * speedMult * mapSpeedMod, radius: 45, color: '#ff0000', damage: 50 * finalDmgMult, value: 2000 * xpMult, knockbackResist: 1 };
       } else if (type === 'rusher') {
-          stats = { hp: 8 * finalHpMult, maxHp: 8 * finalHpMult, speed: 4.5 * speedMult, radius: 9, color: '#ffeb3b', damage: 15 * finalDmgMult, value: 25 * xpMult, knockbackResist: 0.2 };
+          stats = { hp: 8 * finalHpMult, maxHp: 8 * finalHpMult, speed: 4.5 * speedMult * mapSpeedMod, radius: 9, color: '#ffeb3b', damage: 15 * finalDmgMult, value: 25 * xpMult, knockbackResist: 0.2 };
       } else if (type === 'goliath') {
-          stats = { hp: 80 * finalHpMult, maxHp: 80 * finalHpMult, speed: 0.8 * speedMult, radius: 20, color: '#ff4444', damage: 30 * finalDmgMult, value: 100 * xpMult, knockbackResist: 0.9 };
+          stats = { hp: 80 * finalHpMult, maxHp: 80 * finalHpMult, speed: 0.8 * speedMult * mapSpeedMod, radius: 20, color: '#ff4444', damage: 30 * finalDmgMult, value: 100 * xpMult, knockbackResist: 0.9 };
       } else if (type === 'swarmer') {
-          stats = { hp: 4 * finalHpMult, maxHp: 4 * finalHpMult, speed: 3 * speedMult, radius: 6, color: '#00ffaa', damage: 5 * finalDmgMult, value: 2 * xpMult, knockbackResist: 0 };
+          stats = { hp: 4 * finalHpMult, maxHp: 4 * finalHpMult, speed: 3 * speedMult * mapSpeedMod, radius: 6, color: '#00ffaa', damage: 5 * finalDmgMult, value: 2 * xpMult, knockbackResist: 0 };
           ex += (Math.random() - 0.5) * 40;
           ey += (Math.random() - 0.5) * 40;
       } else {
-          stats = { hp: 15 * finalHpMult, maxHp: 15 * finalHpMult, speed: 2 * speedMult, radius: 12, color: '#8800ff', damage: 10 * finalDmgMult, value: 10 * xpMult, knockbackResist: 0 };
+          stats = { hp: 15 * finalHpMult, maxHp: 15 * finalHpMult, speed: 2 * speedMult * mapSpeedMod, radius: 12, color: '#8800ff', damage: 10 * finalDmgMult, value: 10 * xpMult, knockbackResist: 0 };
       }
 
       enemiesRef.current.push({
@@ -333,7 +354,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     const minutes = Math.floor(totalTimeRef.current / 3600);
     const seconds = Math.floor((totalTimeRef.current % 3600) / 60);
     const waveConfig = getWaveConfig(minutes, seconds);
-    spawnRateRef.current = waveConfig.spawnInterval;
+    
+    // MAP SPAWN RATE MODIFIERS
+    let spawnInterval = waveConfig.spawnInterval;
+    if (currentMap.id === 'crimson_waste') {
+        spawnInterval = Math.max(2, Math.floor(spawnInterval * 0.7)); // 30% faster spawns for extreme map
+    }
+    spawnRateRef.current = spawnInterval;
 
     // Spawning Enemies
     spawnTimerRef.current++;
