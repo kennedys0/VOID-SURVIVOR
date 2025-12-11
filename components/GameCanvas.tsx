@@ -4,6 +4,18 @@ import { Player, Enemy, Projectile, Loot, GameState, VoidEvent, Particle, GameMa
 import { generateVoidEvent } from '../services/geminiService';
 import { playSound } from '../services/audioService';
 
+// --- CONFIGURATION ---
+// Asset Paths
+const PLAYER_SPRITE_URL = "./assets/character.png";
+
+const ENEMY_SPRITES: Record<string, string> = {
+    basic: "./assets/basic.png",
+    rusher: "./assets/rusher.png",
+    swarmer: "./assets/swarmer.png",
+    goliath: "./assets/goliath.png", // Sesuai request: goliarh.png
+    boss: "./assets/boss.png"
+};
+
 interface GameCanvasProps {
   gameState: GameState;
   setGameState: (state: GameState) => void;
@@ -94,6 +106,16 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   const keysPressed = useRef<{ [key: string]: boolean }>({});
   const mousePos = useRef<{x: number, y: number}>({x: 0, y: 0});
   
+  // Joystick State
+  const joystickRef = useRef<{ active: boolean, originX: number, originY: number, currentX: number, currentY: number, touchId: number | null }>({
+    active: false, originX: 0, originY: 0, currentX: 0, currentY: 0, touchId: null
+  });
+
+  // Sprite State
+  const playerImageRef = useRef<HTMLImageElement | null>(null);
+  const enemyImagesRef = useRef<Record<string, HTMLImageElement>>({});
+  const facingRef = useRef<number>(1); // 1 = Right, -1 = Left
+  
   const shakeRef = useRef(0);
   const damageFeedbackTimer = useRef(0);
   const scoreRef = useRef(0);
@@ -127,6 +149,27 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     }
   }, [currentMap]);
 
+  // Load Sprites (Player & Enemies)
+  useEffect(() => {
+      // Load Player
+      if (PLAYER_SPRITE_URL) {
+          const img = new Image();
+          img.src = PLAYER_SPRITE_URL;
+          img.crossOrigin = "anonymous";
+          img.onload = () => { playerImageRef.current = img; };
+      }
+
+      // Load Enemies
+      Object.entries(ENEMY_SPRITES).forEach(([key, src]) => {
+          const img = new Image();
+          img.src = src;
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+              enemyImagesRef.current[key] = img;
+          };
+      });
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { 
         keysPressed.current[e.code] = true; 
@@ -151,6 +194,70 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [gameState, setGameState]);
+
+  // Touch Handlers for Joystick
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+        // Only prevent default if we are playing to stop scrolling, 
+        // but allow UI interaction if game is paused/menu
+        if (gameState === GameState.PLAYING) {
+             e.preventDefault(); 
+        }
+
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            // Left half of screen is joystick
+            if (touch.clientX < window.innerWidth / 2) {
+                joystickRef.current = {
+                    active: true,
+                    originX: touch.clientX,
+                    originY: touch.clientY,
+                    currentX: touch.clientX,
+                    currentY: touch.clientY,
+                    touchId: touch.identifier
+                };
+            }
+        }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (gameState === GameState.PLAYING) e.preventDefault();
+        
+        if (!joystickRef.current.active) return;
+
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier === joystickRef.current.touchId) {
+                joystickRef.current.currentX = touch.clientX;
+                joystickRef.current.currentY = touch.clientY;
+            }
+        }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+        if (gameState === GameState.PLAYING) e.preventDefault();
+        
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickRef.current.touchId) {
+                joystickRef.current.active = false;
+                joystickRef.current.touchId = null;
+            }
+        }
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    return () => {
+        canvas.removeEventListener('touchstart', handleTouchStart);
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [gameState]);
 
   const triggerVoidEvent = useCallback(async () => {
     if (gameState !== GameState.PLAYING) return;
@@ -224,6 +331,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         spawnParticles(p.x, p.y, '#aa00ff', 50, 10);
     }
   };
+
+  // Expose ability trigger to global/prop so UI button can click it
+  useEffect(() => {
+      const handleTriggerAbility = () => triggerAbility();
+      window.addEventListener('trigger-ability', handleTriggerAbility);
+      return () => window.removeEventListener('trigger-ability', handleTriggerAbility);
+  }, []);
 
   const spawnEnemyUnit = (type: 'basic' | 'rusher' | 'goliath' | 'swarmer' | 'boss', canvas: HTMLCanvasElement, xpMult: number = 1.0) => {
       const edge = Math.floor(Math.random() * 4);
@@ -387,10 +501,24 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     // Player Movement
     const p = playerRef.current;
     let dx = 0, dy = 0;
+    
+    // Keyboard Input
     if (keysPressed.current['KeyW'] || keysPressed.current['ArrowUp']) dy -= 1;
     if (keysPressed.current['KeyS'] || keysPressed.current['ArrowDown']) dy += 1;
     if (keysPressed.current['KeyA'] || keysPressed.current['ArrowLeft']) dx -= 1;
     if (keysPressed.current['KeyD'] || keysPressed.current['ArrowRight']) dx += 1;
+
+    // Joystick Input override
+    if (joystickRef.current.active) {
+        const jdx = joystickRef.current.currentX - joystickRef.current.originX;
+        const jdy = joystickRef.current.currentY - joystickRef.current.originY;
+        const dist = Math.sqrt(jdx*jdx + jdy*jdy);
+        
+        if (dist > 5) { // Deadzone
+            dx = jdx;
+            dy = jdy;
+        }
+    }
 
     // Normalize diagonal
     if (dx !== 0 || dy !== 0) {
@@ -402,6 +530,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     const moveSpeed = p.activeAbility === 'dash' && p.abilityActiveTimer > 0 ? p.speed * 3 : p.speed;
     p.x = Math.max(p.radius, Math.min(canvas.width - p.radius, p.x + dx * moveSpeed));
     p.y = Math.max(p.radius, Math.min(canvas.height - p.radius, p.y + dy * moveSpeed));
+
+    // --- SPRITE FACING LOGIC ---
+    if (dx > 0) facingRef.current = 1;
+    if (dx < 0) facingRef.current = -1;
 
     // Map Hazards Logic
     if (currentMap.hazardType === 'electric_walls') {
@@ -955,46 +1087,89 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         ctx.stroke();
     }
     
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
-    ctx.fill();
+    // DRAW SPRITE IF LOADED
+    if (playerImageRef.current) {
+        // Horizontal Flip based on direction
+        ctx.scale(facingRef.current, 1);
+        
+        // Bobbing Animation
+        const isMoving = dx !== 0 || dy !== 0;
+        const bobY = isMoving ? Math.sin(totalTimeRef.current * 0.2) * 3 : 0;
+        
+        // Draw centered
+        const size = p.radius * 4.5; // Scale sprite slightly larger than hitbox
+        ctx.drawImage(playerImageRef.current, -size/2, -size/2 + bobY, size, size);
+    } else {
+        // Fallback Circle
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
     ctx.restore();
 
     // Draw Enemies
     enemiesRef.current.forEach(enemy => {
         ctx.save();
         ctx.translate(enemy.x, enemy.y);
-        ctx.fillStyle = enemy.color;
-        ctx.beginPath();
         
-        if (enemy.type === 'rusher') {
-            // Triangle pointing to player roughly (or velocity)
-            const angle = Math.atan2(p.y - enemy.y, p.x - enemy.x);
-            ctx.rotate(angle);
-            ctx.moveTo(enemy.radius, 0);
-            ctx.lineTo(-enemy.radius, enemy.radius/1.5);
-            ctx.lineTo(-enemy.radius, -enemy.radius/1.5);
-        } else if (enemy.type === 'goliath') {
-            ctx.fillRect(-enemy.radius, -enemy.radius, enemy.radius*2, enemy.radius*2);
-        } else if (enemy.type === 'boss') {
-             // Hexagon rotating
-             ctx.rotate(totalTimeRef.current * 0.02);
-             for(let i=0; i<6; i++) {
-                 const theta = (i/6) * Math.PI*2;
-                 ctx.lineTo(Math.cos(theta)*enemy.radius, Math.sin(theta)*enemy.radius);
+        // Cek apakah sprite musuh sudah dimuat
+        const img = enemyImagesRef.current[enemy.type];
+        
+        if (img) {
+             // Handle Rotation for specific enemy types
+             if (enemy.type === 'rusher') {
+                 // Rusher: Face player (angle of velocity)
+                 const angle = Math.atan2(p.y - enemy.y, p.x - enemy.x);
+                 ctx.rotate(angle);
+             } else if (enemy.type === 'boss') {
+                 // Boss: Constant Spin
+                 ctx.rotate(totalTimeRef.current * 0.02);
+             } else if (enemy.type === 'swarmer') {
+                 // Swarmer: Slight wobble or face direction
+                 // const angle = Math.atan2(p.y - enemy.y, p.x - enemy.x);
+                 // ctx.rotate(angle);
              }
-        } else if (enemy.type === 'swarmer') {
-             ctx.rotate(Math.PI/4);
-             ctx.fillRect(-enemy.radius/2, -enemy.radius/2, enemy.radius, enemy.radius);
-        } else {
-            ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
-        }
-        ctx.fill();
+             
+             // Scale: Render sprite slightly larger than hitbox (2.5x)
+             const size = enemy.radius * 2.5; 
+             ctx.drawImage(img, -size/2, -size/2, size, size);
 
-        // Boss Health Bar
+             // Reset rotation for health bar if Boss
+             if (enemy.type === 'boss') {
+                ctx.rotate(-totalTimeRef.current * 0.02);
+             }
+        } else {
+            // Fallback: Geometric Shapes
+            ctx.fillStyle = enemy.color;
+            ctx.beginPath();
+            
+            if (enemy.type === 'rusher') {
+                const angle = Math.atan2(p.y - enemy.y, p.x - enemy.x);
+                ctx.rotate(angle);
+                ctx.moveTo(enemy.radius, 0);
+                ctx.lineTo(-enemy.radius, enemy.radius/1.5);
+                ctx.lineTo(-enemy.radius, -enemy.radius/1.5);
+            } else if (enemy.type === 'goliath') {
+                ctx.fillRect(-enemy.radius, -enemy.radius, enemy.radius*2, enemy.radius*2);
+            } else if (enemy.type === 'boss') {
+                ctx.rotate(totalTimeRef.current * 0.02);
+                for(let i=0; i<6; i++) {
+                    const theta = (i/6) * Math.PI*2;
+                    ctx.lineTo(Math.cos(theta)*enemy.radius, Math.sin(theta)*enemy.radius);
+                }
+            } else if (enemy.type === 'swarmer') {
+                ctx.rotate(Math.PI/4);
+                ctx.fillRect(-enemy.radius/2, -enemy.radius/2, enemy.radius, enemy.radius);
+            } else {
+                ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
+            }
+            ctx.fill();
+        }
+
+        // Boss Health Bar (Selalu digambar, terlepas dari sprite/shape)
         if (enemy.type === 'boss') {
-            ctx.rotate(-totalTimeRef.current * 0.02); // Reset rotation
             ctx.fillStyle = 'red';
             ctx.fillRect(-30, -60, 60, 8);
             ctx.fillStyle = '#00ff00';
@@ -1084,7 +1259,24 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         ctx.restore();
     });
 
-    ctx.restore();
+    ctx.restore(); // Restore shake effect state
+
+    // --- UI OVERLAY ON CANVAS (JOYSTICK) ---
+    // We draw joystick here to keep it perfectly synced with logic
+    if (joystickRef.current.active) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(joystickRef.current.originX, joystickRef.current.originY, 40, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(joystickRef.current.currentX, joystickRef.current.currentY, 20, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+        ctx.restore();
+    }
   };
 
   useEffect(() => {
@@ -1105,7 +1297,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     }
   }, [gameState, currentMap]); // Re-init on map change or game state
 
-  return <canvas ref={canvasRef} className="block" />;
+  return <canvas ref={canvasRef} className="block touch-none" />;
 };
 
 export default GameCanvas;
