@@ -660,18 +660,26 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
             )}
 
             <br />
-            <button 
-              onClick={() => {
-                  if (isNewHighScore && !scoreSaved) {
-                      setScoreSaved(true);
-                      onSaveScore(playerName);
-                  }
-                  onRestart();
-              }}
-              className="relative z-10 bg-white text-red-900 px-12 py-4 rounded-full font-black text-xl hover:scale-105 transition-transform hover:shadow-[0_0_30px_rgba(255,0,0,0.5)]"
-            >
-              {isNewHighScore && !scoreSaved ? 'SAVE & REBOOT' : 'REBOOT SYSTEM'}
-            </button>
+            <div className="flex gap-4 justify-center relative z-10">
+                <button 
+                  onClick={onQuit}
+                  className="bg-transparent border-2 border-gray-500 text-gray-300 px-8 py-4 rounded-full font-bold text-lg hover:border-white hover:text-white transition-colors"
+                >
+                  MAIN MENU
+                </button>
+                <button 
+                  onClick={() => {
+                      if (isNewHighScore && !scoreSaved) {
+                          setScoreSaved(true);
+                          onSaveScore(playerName);
+                      }
+                      onRestart();
+                  }}
+                  className="bg-white text-red-900 px-10 py-4 rounded-full font-black text-xl hover:scale-105 transition-transform hover:shadow-[0_0_30px_rgba(255,0,0,0.5)]"
+                >
+                  {isNewHighScore && !scoreSaved ? 'SAVE & REBOOT' : 'REBOOT SYSTEM'}
+                </button>
+            </div>
           </div>
         </div>
       )}

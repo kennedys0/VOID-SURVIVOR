@@ -7,14 +7,14 @@ import { initAudio } from './services/audioService';
 import { getMapLeaderboard, isHighScore, saveScore, getUserProfile, saveUserProfile } from './services/storageService';
 
 // Meta Upgrade Configurations
-// Adjusted for Rank 50 cap with incremental scaling and increasing costs
+// Adjusted for Rank 50 cap with INCREASED costs based on user feedback
 const META_UPGRADES: MetaUpgradeConfig[] = [
-    { id: 'health', name: 'Hull Reinforcement', description: 'Increases Base Health by 5 per rank.', baseCost: 100, costScale: 1.10, maxRank: 50, statPerRank: 5, format: 'flat' },
-    { id: 'armor', name: 'Plating Armor', description: 'Reduces incoming damage by 0.5 per rank.', baseCost: 500, costScale: 1.15, maxRank: 50, statPerRank: 0.5, format: 'flat' },
-    { id: 'damage', name: 'Weapon Overdrive', description: 'Increases Damage by 2% per rank.', baseCost: 200, costScale: 1.12, maxRank: 50, statPerRank: 0.02, format: 'percent' },
-    { id: 'speed', name: 'Engine Tuning', description: 'Increases Speed by 1% per rank.', baseCost: 200, costScale: 1.12, maxRank: 50, statPerRank: 0.01, format: 'percent' },
-    { id: 'xp', name: 'Data Mining', description: 'Increases XP Gain by 2% per rank.', baseCost: 250, costScale: 1.10, maxRank: 50, statPerRank: 0.02, format: 'percent' },
-    { id: 'magnet', name: 'Attractor Beam', description: 'Increases Pickup Range by 2% per rank.', baseCost: 150, costScale: 1.10, maxRank: 50, statPerRank: 0.02, format: 'percent' }
+    { id: 'health', name: 'Hull Reinforcement', description: 'Increases Base Health by 5 per rank.', baseCost: 250, costScale: 1.15, maxRank: 50, statPerRank: 5, format: 'flat' },
+    { id: 'armor', name: 'Plating Armor', description: 'Reduces incoming damage by 0.5 per rank.', baseCost: 1000, costScale: 1.20, maxRank: 50, statPerRank: 0.5, format: 'flat' },
+    { id: 'damage', name: 'Weapon Overdrive', description: 'Increases Damage by 2% per rank.', baseCost: 500, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'speed', name: 'Engine Tuning', description: 'Increases Speed by 1% per rank.', baseCost: 400, costScale: 1.15, maxRank: 50, statPerRank: 0.01, format: 'percent' },
+    { id: 'xp', name: 'Data Mining', description: 'Increases XP Gain by 2% per rank.', baseCost: 600, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'magnet', name: 'Attractor Beam', description: 'Increases Pickup Range by 2% per rank.', baseCost: 300, costScale: 1.12, maxRank: 50, statPerRank: 0.02, format: 'percent' }
 ];
 
 const MAP_CONFIGS: GameMap[] = [
