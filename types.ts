@@ -49,6 +49,7 @@ export interface GameMap {
   name: string;
   description: string;
   difficulty: string;
+  creditsMultiplier: number; // Multiplier for points earned per kill
   theme: {
     bg: string;
     grid: string;

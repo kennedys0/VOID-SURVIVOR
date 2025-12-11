@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import GameCanvas from './components/GameCanvas';
 import UIOverlay from './components/UIOverlay';
@@ -20,6 +21,7 @@ const MAP_CONFIGS: GameMap[] = [
     name: 'The Void',
     description: 'The standard simulation. Open space, standard threats.',
     difficulty: 'NORMAL',
+    creditsMultiplier: 1.0,
     theme: { bg: '#0f0f12', grid: '#1a1a2e', accent: '#00ffcc' },
     hazardType: 'none'
   },
@@ -28,6 +30,7 @@ const MAP_CONFIGS: GameMap[] = [
     name: 'Neon City',
     description: 'A confined cyber-arena. WARNING: Perimeter walls are electrified.',
     difficulty: 'HARD',
+    creditsMultiplier: 1.5,
     theme: { bg: '#050a14', grid: '#2a0a3b', accent: '#ff00ff' },
     hazardType: 'electric_walls'
   },
@@ -36,6 +39,7 @@ const MAP_CONFIGS: GameMap[] = [
     name: 'Crimson Waste',
     description: 'Hostile terrain. Avoid the magma pools that slow and damage units.',
     difficulty: 'EXTREME',
+    creditsMultiplier: 3.0,
     theme: { bg: '#1a0505', grid: '#3b0a0a', accent: '#ff4400' },
     hazardType: 'lava_pools'
   }
@@ -446,8 +450,9 @@ const App: React.FC = () => {
     const newRecord = isHighScore(finalScore, currentMap.id);
     setIsNewHighScore(newRecord);
     
-    // Calculate Credits (1 Enemy Kill = 50 Points)
-    const credits = kills * 50;
+    // Calculate Credits (1 Enemy Kill = 50 Points BASE * Map Multiplier)
+    const basePoints = 50;
+    const credits = Math.floor(kills * basePoints * currentMap.creditsMultiplier);
     setEarnedCredits(credits);
 
     // Save Meta Progression

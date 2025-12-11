@@ -443,6 +443,10 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
                                     {map.hazardType === 'electric_walls' && <span>⚡ Electrified Perimeter</span>}
                                     {map.hazardType === 'lava_pools' && <span>🔥 Magma Pools</span>}
                                 </div>
+                                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-xs text-gray-400">
+                                    <span>CREDIT YIELD:</span>
+                                    <span className="text-white font-mono font-bold">x{map.creditsMultiplier}</span>
+                                </div>
                             </div>
                         </button>
                     ))}
