@@ -1,0 +1,5 @@
+{
+  "name": "Void Survivor: AI Edition",
+  "description": "A high-octane reverse bullet hell auto-shooter where the Gemini AI acts as the 'Void Director', dynamically altering game difficulty and narrative events based on your performance.",
+  "requestFramePermissions": []
+}
