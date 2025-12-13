@@ -285,7 +285,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
           rank: 1,
           cooldown: 45 * p.statModifiers.cooldown,
           timer: 0,
-          damage: 30 * p.statModifiers.damage,
+          damage: 15 * p.statModifiers.damage, // Reduced base damage from 30 to 15
           projectileCount: 2, // Rank 1 = 2 petir
           projectileSpeed: 0,
           duration: 0,
