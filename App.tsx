@@ -9,12 +9,12 @@ import { getMapLeaderboard, isHighScore, saveScore, getUserProfile, saveUserProf
 // Meta Upgrade Configurations
 // Adjusted for Rank 50 cap with INCREASED costs based on user feedback
 const META_UPGRADES: MetaUpgradeConfig[] = [
-    { id: 'health', name: 'Hull Reinforcement', description: 'Increases Base Health by 5 per rank.', baseCost: 250, costScale: 1.15, maxRank: 50, statPerRank: 5, format: 'flat' },
-    { id: 'armor', name: 'Plating Armor', description: 'Reduces incoming damage by 0.5 per rank.', baseCost: 1000, costScale: 1.20, maxRank: 50, statPerRank: 0.5, format: 'flat' },
-    { id: 'damage', name: 'Weapon Overdrive', description: 'Increases Damage by 2% per rank.', baseCost: 500, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
-    { id: 'speed', name: 'Engine Tuning', description: 'Increases Speed by 1% per rank.', baseCost: 400, costScale: 1.15, maxRank: 50, statPerRank: 0.01, format: 'percent' },
-    { id: 'xp', name: 'Data Mining', description: 'Increases XP Gain by 2% per rank.', baseCost: 600, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
-    { id: 'magnet', name: 'Attractor Beam', description: 'Increases Pickup Range by 2% per rank.', baseCost: 300, costScale: 1.12, maxRank: 50, statPerRank: 0.02, format: 'percent' }
+    { id: 'health', name: 'Iron Skin', description: 'Increases Base Health by 5 per rank.', baseCost: 250, costScale: 1.15, maxRank: 50, statPerRank: 5, format: 'flat' },
+    { id: 'armor', name: 'Mithril Plating', description: 'Reduces incoming damage by 0.5 per rank.', baseCost: 1000, costScale: 1.20, maxRank: 50, statPerRank: 0.5, format: 'flat' },
+    { id: 'damage', name: 'Divine Might', description: 'Increases Damage by 2% per rank.', baseCost: 500, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'speed', name: 'Wind Walk', description: 'Increases Speed by 1% per rank.', baseCost: 400, costScale: 1.15, maxRank: 50, statPerRank: 0.01, format: 'percent' },
+    { id: 'xp', name: 'Scholar\'s Wisdom', description: 'Increases XP Gain by 2% per rank.', baseCost: 600, costScale: 1.15, maxRank: 50, statPerRank: 0.02, format: 'percent' },
+    { id: 'magnet', name: 'Magnetic Soul', description: 'Increases Pickup Range by 2% per rank.', baseCost: 300, costScale: 1.12, maxRank: 50, statPerRank: 0.02, format: 'percent' }
 ];
 
 const MAP_CONFIGS: GameMap[] = [
@@ -29,8 +29,8 @@ const MAP_CONFIGS: GameMap[] = [
   },
   {
     id: 'neon_city',
-    name: 'Neon City',
-    description: 'A confined cyber-arena. WARNING: Perimeter walls are electrified.',
+    name: 'Cursed Catacombs',
+    description: 'Dark corridors filled with ancient traps. WARNING: Walls are electrified.',
     difficulty: 'HARD',
     creditsMultiplier: 1.5,
     theme: { bg: '#050a14', grid: '#2a0a3b', accent: '#ff00ff', textureId: 'neon_dirt' },
@@ -38,7 +38,7 @@ const MAP_CONFIGS: GameMap[] = [
   },
   {
     id: 'crimson_waste',
-    name: 'Crimson Waste',
+    name: 'Hellscape',
     description: 'Hostile terrain. Avoid the magma pools that slow and damage units.',
     difficulty: 'EXTREME',
     creditsMultiplier: 3.0,
@@ -56,18 +56,18 @@ const getStarterWeapon = (type: WeaponType): Weapon => {
             };
         case 'shotgun':
             return {
-                id: 'shotgun_starter', type: 'shotgun', name: 'Void Shotgun', rank: 1,
+                id: 'shotgun_starter', type: 'shotgun', name: 'Dwarven Blunderbuss', rank: 1,
                 cooldown: 55, timer: 0, damage: 12, projectileCount: 3, projectileSpeed: 12, duration: 25, color: '#ffaa00', active: true
             };
         case 'boomerang':
             return {
-                id: 'boomerang_starter', type: 'boomerang', name: 'Plasma Boomerang', rank: 1,
+                id: 'boomerang_starter', type: 'boomerang', name: 'Spirit Axe', rank: 1,
                 cooldown: 150, timer: 0, damage: 20, projectileCount: 1, projectileSpeed: 12, duration: 120, color: '#00ff66', active: true
             };
         case 'pistol':
         default:
             return {
-                id: 'pistol_starter', type: 'pistol', name: 'Pulse Pistol', rank: 1,
+                id: 'pistol_starter', type: 'pistol', name: 'Magic Bolt', rank: 1,
                 cooldown: 25, timer: 0, damage: 15, projectileCount: 1, projectileSpeed: 10, duration: 60, color: '#00ffff', active: true
             };
     }
@@ -77,7 +77,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   // STAT UPGRADES (PASSIVE)
   {
     id: 'atk_spd',
-    name: 'Rapid Fire',
+    name: 'Fervor',
     description: 'Increases attack speed of all weapons by 15%.',
     rarity: 'common',
     category: 'stat',
@@ -89,7 +89,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'dmg_up',
-    name: 'High Caliber',
+    name: 'Titan Strength',
     description: 'Increases damage of all weapons by 20%.',
     rarity: 'common',
     category: 'stat',
@@ -101,7 +101,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'speed',
-    name: 'Overclock',
+    name: 'Haste',
     description: 'Increases movement speed by 10%.',
     rarity: 'common',
     category: 'stat',
@@ -110,7 +110,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'health',
-    name: 'Nano-Repair',
+    name: 'Holy Light',
     description: 'Heals 30 HP and increases Max HP by 20.',
     rarity: 'common',
     category: 'stat',
@@ -119,7 +119,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'range',
-    name: 'Magnetism',
+    name: 'Greed',
     description: 'Greatly increases XP pickup range.',
     rarity: 'rare',
     category: 'stat',
@@ -128,7 +128,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'ability_cdr',
-    name: 'Flux Capacitor',
+    name: 'Meditation',
     description: 'Reduces Active Ability cooldown by 20%.',
     rarity: 'rare',
     category: 'stat',
@@ -160,8 +160,8 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'weapon_shotgun',
-    name: 'Void Shotgun',
-    description: 'Unlocks Shotgun or upgrades projectile count and speed.',
+    name: 'Dwarven Blunderbuss',
+    description: 'Unlocks Blunderbuss or upgrades projectile count and speed.',
     rarity: 'legendary',
     category: 'weapon',
     maxRank: 5,
@@ -185,7 +185,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'weapon_orbital',
-    name: 'Graviton Orbs',
+    name: 'Arcane Orbs',
     description: 'Unlocks Orbs or adds more orbs and increases rotation.',
     rarity: 'legendary',
     category: 'weapon',
@@ -216,8 +216,8 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'weapon_boomerang',
-    name: 'Plasma Boomerang',
-    description: 'Unlocks Boomerang or reduces cooldown drastically.',
+    name: 'Spirit Axe',
+    description: 'Unlocks Axe or reduces cooldown drastically.',
     rarity: 'rare',
     category: 'weapon',
     maxRank: 5,
@@ -238,8 +238,8 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'weapon_molotov',
-    name: 'Inferno Cocktail',
-    description: 'Unlocks Molotov or increases fire duration and area size.',
+    name: 'Greek Fire',
+    description: 'Unlocks Fire or increases fire duration and area size.',
     rarity: 'rare',
     category: 'weapon',
     maxRank: 5,
@@ -269,7 +269,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'weapon_lightning',
-    name: 'Tesla Coil',
+    name: 'Zeus Bolt',
     description: 'Strikes enemies with lightning. Rank 3 & 5 add more bolts.',
     rarity: 'legendary',
     category: 'weapon',
@@ -310,7 +310,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   // ABILITIES
   {
     id: 'ability_shield',
-    name: 'Tech Shield',
+    name: 'Divine Shield',
     description: 'Ability: Swap Dash for a temporary Shield that absorbs damage.',
     rarity: 'legendary',
     category: 'ability',
@@ -323,7 +323,7 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
   {
     id: 'ability_nova',
-    name: 'Void Nova',
+    name: 'Holy Nova',
     description: 'Ability: Swap Dash for a massive screen-clearing explosion.',
     rarity: 'legendary',
     category: 'ability',
@@ -556,7 +556,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-gray-900 overflow-hidden">
+    <div className="relative w-full h-screen bg-stone-900 overflow-hidden text-stone-200">
       <GameCanvas 
         key={gameSessionId}
         gameState={gameState}

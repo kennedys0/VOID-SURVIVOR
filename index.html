@@ -3,16 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Void Survivor</title>
-    <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="grad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" style="stop-color:white;stop-opacity:1" /><stop offset="40%" style="stop-color:%23a855f7;stop-opacity:1" /><stop offset="100%" style="stop-color:black;stop-opacity:1" /></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(%23grad)" /></svg>' />
+    <title>Realm Survivor</title>
+    <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="grad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" style="stop-color:gold;stop-opacity:1" /><stop offset="100%" style="stop-color:darkred;stop-opacity:1" /></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(%23grad)" /></svg>' />
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Medieval Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
+    
     <style>
       body {
         margin: 0;
         overflow: hidden;
-        background-color: #0f0f12;
-        color: white;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #1c1917; /* stone-900 */
+        color: #e7e5e4;
+        font-family: 'MedievalSharp', cursive;
+      }
+      h1, h2, h3, h4, h5, h6, .font-title {
+        font-family: 'Cinzel', serif;
       }
       canvas {
         display: block;
@@ -24,6 +32,17 @@
       .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+      }
+      /* Old parchment texture effect overlay class */
+      .bg-parchment {
+        background-color: #e7d5b9;
+        color: #451a03;
+      }
+      .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      }
+      .text-shadow-gold {
+        text-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
       }
     </style>
   <script type="importmap">
