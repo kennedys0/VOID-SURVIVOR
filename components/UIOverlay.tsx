@@ -74,7 +74,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
   earnedCredits
 }) => {
   const [prepStage, setPrepStage] = useState<'map' | 'weapon'>('map');
-  const [selectedWeapon, setSelectedWeapon] = useState<WeaponType>('pistol');
+  const [selectedWeapon, setSelectedWeapon] = useState<WeaponType>('sword'); // Default sword
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [playerName, setPlayerName] = useState("Survivor");
   const [scoreSaved, setScoreSaved] = useState(false);
@@ -469,11 +469,11 @@ const UIOverlay: React.FC<UIOverlayProps> = ({
              {/* WEAPON SELECTION STAGE */}
              {prepStage === 'weapon' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl px-4 md:px-10 pb-24 md:pb-0">
-                    {/* WEAPON CARDS - Reused styling */}
+                    {/* WEAPON CARDS */}
                     {[
-                        { id: 'pistol', icon: '🔫', name: 'Pulse Pistol', desc: 'Standard issue automatic energy weapon. Balanced damage.', color: 'cyan', stats: [60, 80, 70] },
-                        { id: 'shotgun', icon: '🎇', name: 'Void Shotgun', desc: 'Short-range scatter weapon. High burst damage.', color: 'orange', stats: [90, 40, 30] },
-                        { id: 'boomerang', icon: '🪃', name: 'Plasma Boomerang', desc: 'Thrown weapon that returns. Infinite pierce.', color: 'green', stats: [75, 60, 100] }
+                        { id: 'sword', icon: '⚔️', name: 'Rune Blade', desc: 'Melee weapon. High damage slashes in an arc.', color: 'cyan', stats: [90, 50, 20] },
+                        { id: 'pistol', icon: '🔫', name: 'Pulse Pistol', desc: 'Standard issue automatic energy weapon. Balanced damage.', color: 'blue', stats: [60, 80, 70] },
+                        { id: 'shotgun', icon: '🎇', name: 'Void Shotgun', desc: 'Short-range scatter weapon. High burst damage.', color: 'orange', stats: [80, 40, 30] }
                     ].map((w) => (
                         <button 
                             key={w.id}

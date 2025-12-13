@@ -40,9 +40,9 @@ export interface DamageIndicator extends Position {
 }
 
 export type AbilityType = 'dash' | 'shield' | 'nova';
-export type WeaponType = 'pistol' | 'shotgun' | 'orbital' | 'boomerang' | 'molotov' | 'lightning';
+export type WeaponType = 'pistol' | 'shotgun' | 'orbital' | 'boomerang' | 'molotov' | 'lightning' | 'sword';
 export type UpgradeCategory = 'stat' | 'weapon' | 'ability';
-export type MapId = 'void' | 'neon_city' | 'crimson_waste';
+export type MapId = 'void' | 'neon_city' | 'crimson_waste' | 'grass_lands';
 
 export interface GameMap {
   id: MapId;
@@ -54,6 +54,7 @@ export interface GameMap {
     bg: string;
     grid: string;
     accent: string;
+    textureId?: string; // New: Optional texture ID for tiled backgrounds
   };
   hazardType: 'none' | 'electric_walls' | 'lava_pools';
 }
@@ -103,6 +104,12 @@ export interface Player extends Entity {
   abilityCooldown: number; // Max frames
   abilityTimer: number;    // Current frames until ready
   abilityActiveTimer: number; // How long the ability is currently active (e.g. dashing duration)
+
+  // Animation State
+  state: 'idle' | 'walk' | 'attack' | 'hurt' | 'death';
+  frame: number;
+  frameTimer: number;
+  facing: number; // 1 or -1
 }
 
 export interface Enemy extends Entity {
@@ -113,6 +120,13 @@ export interface Enemy extends Entity {
   value: number; // XP Value
   type: 'basic' | 'rusher' | 'goliath' | 'swarmer' | 'boss';
   knockbackResist: number; // 0 to 1 (1 = immovable)
+  vx: number; // Velocity X for smooth knockback
+  vy: number; // Velocity Y for smooth knockback
+  
+  // Animation State
+  state: 'walk' | 'attack' | 'hurt' | 'death';
+  frame: number;
+  frameTimer: number;
 }
 
 export interface Projectile extends Entity {
@@ -121,12 +135,13 @@ export interface Projectile extends Entity {
   damage: number;
   duration: number;
   pierce: number;
-  behavior: 'straight' | 'orbital' | 'boomerang' | 'lob' | 'hazard' | 'lightning';
+  behavior: 'straight' | 'orbital' | 'boomerang' | 'lob' | 'hazard' | 'lightning' | 'melee';
   orbitAngle?: number; // For orbitals
   orbitRadius?: number; // For orbitals
   returnSpeed?: number; // For boomerang
   aoeRadius?: number; // For hazard/explosions
   isMaxRank?: boolean; // Visual flair for maxed weapons
+  ownerId?: string; // To track who fired it (mostly for melee to follow player)
 }
 
 export interface Loot extends Entity {

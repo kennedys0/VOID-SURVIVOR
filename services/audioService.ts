@@ -1,5 +1,6 @@
 
 
+
 // Audio Service using Web Audio API for procedural sound generation
 
 let audioCtx: AudioContext | null = null;
@@ -96,6 +97,11 @@ export const playSound = {
     shootLightning: () => {
         playNoise(0.1, 0.1, 8000); // Crackle
         playTone(1500, 'sawtooth', 0.1, 0.1, 200);
+    },
+    shootSword: () => {
+        // Metal swish
+        playNoise(0.15, 0.2, 3000);
+        playTone(400, 'sawtooth', 0.15, 0.1, 800);
     },
     explosionMolotov: () => {
         playNoise(1.0, 0.2, 500); // Fire sound

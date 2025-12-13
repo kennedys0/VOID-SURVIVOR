@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { VoidEvent } from "../types";
 
@@ -16,13 +17,14 @@ export const generateVoidEvent = async (
   killCount: number,
   playerHpRatio: number
 ): Promise<VoidEvent> => {
+  const defaultEvent: VoidEvent = {
+    title: "The Void Shifts",
+    message: "A tremor runs through the digital reality.",
+    modifier: { enemySpeedMultiplier: 1.05 }
+  };
+
   if (!ai) {
-    // Fallback if no API key is present
-    return {
-      title: "The Void Shifts",
-      message: "A tremor runs through the digital reality.",
-      modifier: { enemySpeedMultiplier: 1.1 }
-    };
+    return defaultEvent;
   }
 
   const prompt = `
@@ -75,14 +77,18 @@ export const generateVoidEvent = async (
     const text = response.text;
     if (!text) throw new Error("No text returned");
     
-    return JSON.parse(text) as VoidEvent;
+    try {
+        const parsed = JSON.parse(text) as VoidEvent;
+        // Ensure modifier object exists to prevent "Cannot read properties of undefined"
+        if (!parsed.modifier) parsed.modifier = {};
+        return parsed;
+    } catch (parseError) {
+        console.warn("Gemini JSON parse failed, using fallback:", parseError);
+        return defaultEvent;
+    }
 
   } catch (error) {
     console.error("Gemini AI generation failed:", error);
-    return {
-      title: "Connection Lost",
-      message: "The Void Director is silent. Defaulting protocols.",
-      modifier: { enemySpeedMultiplier: 1.05 }
-    };
+    return defaultEvent;
   }
 };

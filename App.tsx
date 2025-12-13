@@ -19,12 +19,12 @@ const META_UPGRADES: MetaUpgradeConfig[] = [
 
 const MAP_CONFIGS: GameMap[] = [
   {
-    id: 'void',
-    name: 'The Void',
-    description: 'The standard simulation. Open space, standard threats.',
+    id: 'grass_lands',
+    name: 'Verdant Plains',
+    description: 'Ancient organic terrain. Overgrown, but potentially dangerous.',
     difficulty: 'NORMAL',
     creditsMultiplier: 1.0,
-    theme: { bg: '#0f0f12', grid: '#1a1a2e', accent: '#00ffcc' },
+    theme: { bg: '#2d4c1e', grid: '#3a5f27', accent: '#76ff03', textureId: 'grass' },
     hazardType: 'none'
   },
   {
@@ -33,7 +33,7 @@ const MAP_CONFIGS: GameMap[] = [
     description: 'A confined cyber-arena. WARNING: Perimeter walls are electrified.',
     difficulty: 'HARD',
     creditsMultiplier: 1.5,
-    theme: { bg: '#050a14', grid: '#2a0a3b', accent: '#ff00ff' },
+    theme: { bg: '#050a14', grid: '#2a0a3b', accent: '#ff00ff', textureId: 'neon_dirt' },
     hazardType: 'electric_walls'
   },
   {
@@ -42,13 +42,18 @@ const MAP_CONFIGS: GameMap[] = [
     description: 'Hostile terrain. Avoid the magma pools that slow and damage units.',
     difficulty: 'EXTREME',
     creditsMultiplier: 3.0,
-    theme: { bg: '#1a0505', grid: '#3b0a0a', accent: '#ff4400' },
+    theme: { bg: '#1a0505', grid: '#3b0a0a', accent: '#ff4400', textureId: 'crimson_stones' },
     hazardType: 'lava_pools'
   }
 ];
 
 const getStarterWeapon = (type: WeaponType): Weapon => {
     switch(type) {
+        case 'sword':
+            return {
+                id: 'sword_starter', type: 'sword', name: 'Rune Blade', rank: 1,
+                cooldown: 40, timer: 0, damage: 30, projectileCount: 1, projectileSpeed: 0, duration: 15, color: '#00ffff', active: true
+            };
         case 'shotgun':
             return {
                 id: 'shotgun_starter', type: 'shotgun', name: 'Void Shotgun', rank: 1,
@@ -132,6 +137,27 @@ const UPGRADES_POOL: UpgradeOption[] = [
   },
 
   // WEAPONS (ACTIVE) - Rank 1 Unlocks, Rank 2-5 Upgrades
+  {
+    id: 'weapon_sword',
+    name: 'Rune Blade',
+    description: 'Unlocks Sword or increases damage and attack speed.',
+    rarity: 'rare',
+    category: 'weapon',
+    maxRank: 5,
+    apply: (p) => {
+      const existing = p.weapons.find(w => w.type === 'sword');
+      if (!existing) {
+        const w = getStarterWeapon('sword');
+        w.damage *= p.statModifiers.damage;
+        w.cooldown *= p.statModifiers.cooldown;
+        p.weapons.push(w);
+      } else {
+        existing.rank++;
+        existing.damage *= 1.3;
+        existing.cooldown = Math.max(10, existing.cooldown * 0.9);
+      }
+    }
+  },
   {
     id: 'weapon_shotgun',
     name: 'Void Shotgun',
@@ -244,22 +270,23 @@ const UPGRADES_POOL: UpgradeOption[] = [
   {
     id: 'weapon_lightning',
     name: 'Tesla Coil',
-    description: 'Unlocks Tesla or chains to more enemies with higher damage.',
+    description: 'Strikes enemies with lightning. Rank 3 & 5 add more bolts.',
     rarity: 'legendary',
     category: 'weapon',
     maxRank: 5,
     apply: (p) => {
        const existing = p.weapons.find(w => w.type === 'lightning');
        if (!existing) {
+        // RANK 1: 2 Petir
         p.weapons.push({
           id: `lightning_${Date.now()}`,
           type: 'lightning',
           name: 'Tesla',
           rank: 1,
-          cooldown: 40 * p.statModifiers.cooldown,
+          cooldown: 45 * p.statModifiers.cooldown,
           timer: 0,
-          damage: 35 * p.statModifiers.damage,
-          projectileCount: 3,
+          damage: 30 * p.statModifiers.damage,
+          projectileCount: 2, // Rank 1 = 2 petir
           projectileSpeed: 0,
           duration: 0,
           color: '#ccffff',
@@ -267,8 +294,15 @@ const UPGRADES_POOL: UpgradeOption[] = [
         });
        } else {
          existing.rank++;
-         existing.damage += 10;
-         existing.projectileCount += 1; // +1 Target
+         if (existing.rank === 2) {
+             existing.damage *= 1.5; // Rank 2: Damage Up
+         } else if (existing.rank === 3) {
+             existing.projectileCount = 3; // Rank 3: 3 Petir
+         } else if (existing.rank === 4) {
+             existing.damage *= 1.5; // Rank 4: Damage Up
+         } else if (existing.rank === 5) {
+             existing.projectileCount = 4; // Rank 5: 4 Petir
+         }
        }
     }
   },
@@ -326,16 +360,17 @@ const App: React.FC = () => {
   // Leaderboard & Profile State
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
-  const [startWeapon, setStartWeapon] = useState<WeaponType>('pistol');
+  const [startWeapon, setStartWeapon] = useState<WeaponType>('sword'); // Default to Sword
   const [userProfile, setUserProfile] = useState<UserProfile>(getUserProfile());
 
   // UI State for Ability
   const [abilityData, setAbilityData] = useState({ type: 'dash', cooldown: 100, maxCooldown: 100 });
 
-  // Initial dummy player to prevent crash before game starts
+  // Initial player reference
   const playerRef = useRef<Player>({ 
-      id: 'p1', x: 0, y: 0, radius: 12, color: '#00ffcc', hp: 100, maxHp: 100, speed: 4, armor: 0, level: 1, xp: 0, xpToNextLevel: 100, pickupRange: 100, markedForDeletion: false, activeAbility: 'dash', abilityCooldown: 120, abilityTimer: 0, abilityActiveTimer: 0, 
-      statModifiers: { damage: 1, cooldown: 1, xpMultiplier: 1 }, weapons: [] 
+      id: 'p1', x: 0, y: 0, radius: 24, color: '#00ffcc', hp: 100, maxHp: 100, speed: 4, armor: 0, level: 1, xp: 0, xpToNextLevel: 100, pickupRange: 100, markedForDeletion: false, activeAbility: 'dash', abilityCooldown: 120, abilityTimer: 0, abilityActiveTimer: 0, 
+      statModifiers: { damage: 1, cooldown: 1, xpMultiplier: 1 }, weapons: [],
+      state: 'idle', frame: 0, frameTimer: 0, facing: 1
   });
 
   // Load Leaderboard on Menu
@@ -371,7 +406,7 @@ const App: React.FC = () => {
       id: 'player',
       x: window.innerWidth / 2, 
       y: window.innerHeight / 2,
-      radius: 12,
+      radius: 24,
       color: '#00ffcc',
       hp: baseHp,
       maxHp: baseHp,
@@ -391,11 +426,16 @@ const App: React.FC = () => {
         cooldown: 1,
         xpMultiplier: xpMult
       },
-      weapons: [starterWeapon]
+      weapons: [starterWeapon],
+      state: 'idle',
+      frame: 0,
+      frameTimer: 0,
+      facing: 1
     };
     
     // Seed upgrade counts
     const counts: Record<string, number> = {};
+    if (starterWeaponType === 'sword') counts['weapon_sword'] = 1;
     if (starterWeaponType === 'shotgun') counts['weapon_shotgun'] = 1;
     if (starterWeaponType === 'boomerang') counts['weapon_boomerang'] = 1;
 
